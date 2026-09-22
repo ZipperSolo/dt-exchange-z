@@ -3,6 +3,9 @@ extension/*.css
 extension/*.map
 
 builds/
+server.mjs
+server.config.json
+seen.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/node
 # Edit at https://www.toptal.com/developers/gitignore?templates=node

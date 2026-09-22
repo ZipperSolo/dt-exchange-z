@@ -6,7 +6,9 @@
 		"build": "node ./bin/build.mjs",
 		"test": "vitest run",
 		"typecheck": "tsc",
-		"fmt": "oxfmt ."
+		"fmt": "oxfmt .",
+		"server:build": "node ./bin/build-server.mjs",
+		"server": "npm run server:build && node server.mjs"
 	},
 	"dependencies": {
 		"fast-deep-equal": "^3.1.3",

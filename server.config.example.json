@@ -1,0 +1,16 @@
+{
+	"user": {
+		"AccessToken": "PASTE_ACCESS_TOKEN_HERE",
+		"RefreshToken": "",
+		"ExpiresIn": 3600,
+		"Sub": "PASTE_SUB_HERE",
+		"AccountName": "",
+		"RefreshAt": 0
+	},
+	"rules": [{ "minStats": 360 }],
+	"discordWebhook": "https://discord.com/api/webhooks/PASTE_WEBHOOK_URL",
+	"pollIntervalMs": 60000,
+	"storeTypes": ["credits", "marks"],
+	"stateFile": "seen.json",
+	"dryRun": false
+}
