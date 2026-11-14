@@ -113,6 +113,25 @@ FatShark rotates it on use — the second refresh invalidates the first instance
 pair and the loser logs `token refresh failed: HTTP 401` until restarted. Stop the
 unit before starting the container, and vice versa.
 
+### The unit is NixOS-declared on the deployed host
+
+On `mini`, `/etc/systemd/user/dt-exchange.service` is a symlink into
+`/nix/store`, so `systemctl --user disable --now dt-exchange` only holds until the
+next `nixos-rebuild switch` recreates and starts it — which would silently bring
+back the second instance and the token fight above. Mask it instead, which writes
+`~/.config/systemd/user/dt-exchange.service` → `/dev/null` and outranks `/etc`
+across rebuilds:
+
+```sh
+systemctl --user disable --now dt-exchange
+systemctl --user mask dt-exchange
+```
+
+Remove the unit from the Nix configuration when convenient; until then the mask is
+what keeps a rebuild from resurrecting it. `podman-restart.service` is enabled on
+the host, so a container started with `--restart unless-stopped` comes back after
+a reboot without any unit of its own.
+
 Rollback is the same command in reverse:
 
 ```sh
