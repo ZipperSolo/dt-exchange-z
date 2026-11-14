@@ -60,6 +60,8 @@ ExpiresIn, Sub, ... }` — set by accounts.atoma.cloud's own login. The extensio
 | `src/types.ts`                                                         | API + filter-rule types                                               |
 | `src/filter.ts`                                                        | shared rule matching (`filterFunc`), used by both UI and server       |
 | `src/server.ts`                                                        | Node server: polls shops, matches rules, posts new matches to Discord |
+| `Dockerfile`, `compose.yaml`                                           | Container build + run for the notifier (`docs/container.md`)          |
+| `scripts/container-healthcheck.mjs`                                    | Container liveness probe: `seen.json` freshness, no port to probe     |
 | `bin/build-server.mjs`                                                 | bundles `src/server.ts` → `server.mjs`                                |
 | `server.config.example.json`                                           | template for `server.config.json` (gitignored)                        |
 | `src/localisation.json`, `trait_templates.json`, `buff_templates.json` | bundled game data for names/descriptions                              |

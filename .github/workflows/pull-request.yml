@@ -15,17 +15,41 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: "actions/checkout@v3.2.0"
+        uses: "actions/checkout@v4"
 
       - name: "Build"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: npm
       - run: npm i
       - run: npm run build
       - run: npm test
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: builds
           path: builds/
+
+  # The deployable artifact for the notifier is the container image, so build it
+  # on every PR: a broken Dockerfile or a silently dropped HEALTHCHECK then
+  # fails here instead of on the host mid-cutover.
+  container:
+    name: "Build container image"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout code"
+        uses: "actions/checkout@v4"
+
+      - name: "Build image"
+        run: docker build -t dt-exchange:ci .
+
+      - name: "Assert the healthcheck survived the build"
+        run: |
+          probe=$(docker inspect -f '{{if .Config.Healthcheck}}{{index .Config.Healthcheck.Test}}{{end}}' dt-exchange:ci)
+          echo "healthcheck: $probe"
+          test -n "$probe"
+
+      - name: "Assert the runtime image has the bundle"
+        run: docker run --rm --entrypoint sh dt-exchange:ci -c 'test -s /app/server.mjs && test -s /app/healthcheck.mjs && node --version'

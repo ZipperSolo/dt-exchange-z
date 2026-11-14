@@ -1,0 +1,37 @@
+# Alternative to `--restart`: let systemd supervise the container, matching the
+# other podman services on the host. Drop into NixOS as
+# systemd.user.services.dt-exchange-container (see docs/container.md) or install
+# as ~/.config/systemd/user/dt-exchange-container.service.
+#
+# On NixOS `podman` is not on a user unit's PATH: declare the service via a module
+# with `path = [ pkgs.podman ]` and rewrite `podman` below as ${pkgs.podman}/bin/podman.
+#
+# Build the image first:  podman build --format docker -t dt-exchange:local .
+[Unit]
+Description=Darktide Armoury Exchange notifier (container)
+After=network-online.target
+RequiresMountsFor=/home/jrz/dt-exchange
+ConditionPathExists=/home/jrz/dt-exchange/server.config.json
+
+[Service]
+# Keep podman reachable on both NixOS and standard distros (a NixOS module can
+# replace this with `path = [ pkgs.podman ]`).
+Environment=PATH=/run/current-system/sw/bin:/usr/local/bin:/usr/bin:/bin
+Restart=always
+RestartSec=10
+TimeoutStopSec=60
+ExecStop=/bin/sh -c 'exec podman stop --ignore --time 20 dt-exchange'
+ExecStart=/bin/sh -c 'exec podman run --rm --replace \
+  --name dt-exchange \
+  --userns=keep-id \
+  -v /home/jrz/dt-exchange:/data:Z \
+  -e CONFIG_FILE=/data/server.config.json \
+  -e NODE_ENV=production \
+  --health-cmd "node /app/healthcheck.mjs" \
+  --health-interval 60s \
+  --health-start-period 180s \
+  --label io.containers.autoupdate=disabled \
+  dt-exchange:local'
+
+[Install]
+WantedBy=default.target
