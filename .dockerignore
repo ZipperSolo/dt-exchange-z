@@ -1,0 +1,15 @@
+node_modules
+builds
+extension
+.git
+.github
+.vscode
+docs
+data
+*.md
+!.dockerignore
+server.mjs
+server.config.json
+server.config.json.bak-*
+seen.json
+*.log

@@ -206,7 +206,17 @@ async function main() {
 	}
 
 	await poll()
-	setInterval(poll, config.pollIntervalMs ?? 60_000)
+	const interval = setInterval(poll, config.pollIntervalMs ?? 60_000)
+
+	// Containers (and systemd) stop with SIGTERM. Without this the process ignores
+	// it until the 10s kill timeout, which looks like a hang on every restart.
+	for (const signal of ["SIGTERM", "SIGINT"] as const) {
+		process.once(signal, () => {
+			console.log(`${signal} received, shutting down`)
+			clearInterval(interval)
+			process.exit(0)
+		})
+	}
 }
 
 main().catch((error) => {

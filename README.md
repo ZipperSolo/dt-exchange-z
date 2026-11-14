@@ -41,6 +41,22 @@ It notifies once per new matching offer (state in `seen.json`), and polls every
 `pollIntervalMs` milliseconds. `dryRun: true` (or `DRY_RUN=1`) logs matches without
 posting to Discord.
 
+### Container
+
+`Dockerfile` + `compose.yaml` run the notifier with no Node install on the host.
+The config and `seen.json` stay bind-mounted (the server rewrites the rotated
+tokens into `server.config.json`), so the container is stateless:
+
+```sh
+podman build --format docker -t dt-exchange:local .
+DT_EXCHANGE_DATA=$HOME/dt-exchange npm run container:up
+npm run container:logs
+```
+
+Full details — uid mapping, healthcheck semantics, migrating an existing systemd
+deployment, and the "never run two instances against one RefreshToken" rule — are
+in [docs/container.md](docs/container.md).
+
 To run it always-on, build once (`npm run server:build` produces a self-contained
 `server.mjs`) and run it under a systemd user service (or cron). Example unit,
 `~/.config/systemd/user/dt-exchange.service`:

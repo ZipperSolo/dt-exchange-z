@@ -1,0 +1,32 @@
+services:
+  dt-exchange:
+    build:
+      context: .
+      # Match the uid/gid that owns ./data so the container can rewrite the
+      # rotated tokens in server.config.json and seen.json.
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-100}
+    image: dt-exchange:local
+    container_name: dt-exchange
+    restart: unless-stopped
+    # podman-only: map the host user into the container so bind-mounted files
+    # stay writable. Harmless to drop when using Docker Desktop / rootful.
+    userns_mode: keep-id
+    working_dir: /data
+    environment:
+      CONFIG_FILE: /data/server.config.json
+      # DRY_RUN: "1"  # log matches without posting to Discord
+    volumes:
+      # server.config.json (live, rotating tokens) + seen.json (match state).
+      # Both must persist on the host: the server writes refreshed tokens back
+      # into the config file every ~25 minutes.
+      - ${DT_EXCHANGE_DATA:-./data}:/data:Z
+    # No ports and no network mode: outbound HTTPS only.
+    healthcheck:
+      # No port to probe: liveness is seen.json advancing (see docs/container.md)
+      test: ["CMD", "node", "/app/healthcheck.mjs"]
+      interval: 60s
+      timeout: 15s
+      start_period: 180s
+      retries: 3
